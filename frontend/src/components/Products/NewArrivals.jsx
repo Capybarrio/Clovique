@@ -2,6 +2,8 @@ import axios from "axios";
 import React, { useEffect, useRef, useState } from "react";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { Link } from "react-router-dom";
+import { useTranslation } from "../../context/useTranslation";
+import { translateProduct } from "../../i18n/productTranslations";
 
 const NewArrivals = () => {
   const scrollRef = useRef(null);
@@ -10,6 +12,7 @@ const NewArrivals = () => {
   const [scrollLeft, setScrollLeft] = useState(false);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
+  const { language, t } = useTranslation();
 
   const [newArrivals, setNewArrivals] = useState([]);
   useEffect(() => {
@@ -67,10 +70,11 @@ const NewArrivals = () => {
   return (
     <section className="py-16 px-4 lg:px-6">
       <div className="container mx-auto text-center mb-10 relative">
-        <h2 className="text-3xl font-bold mb-4">Explore New Arrivals</h2>
+        <h2 className="text-3xl font-bold mb-4">
+          {t("home.newArrivalsTitle")}
+        </h2>
         <p className="text-lg text-gray-600 mb-8">
-          Discover the latest styles straight off the runway, freshly added to
-          keep your wardrobe on the cutting edge of fashion.
+          {t("home.newArrivalsText")}
         </p>
         {/* Scroll Button */}
         <div className="absolute right-0 -bottom-7.5 flex space-x-2">
@@ -99,7 +103,10 @@ const NewArrivals = () => {
         onMouseUp={handleMouseUpOrLeave}
         onMouseLeave={handleMouseUpOrLeave}
       >
-        {newArrivals.map((product) => (
+        {newArrivals.map((product) => {
+          const displayProduct = translateProduct(product, language, t);
+
+          return (
           <div
             key={product._id}
             className="min-w-full sm:min-w-[50%] lg:min-w-[30%] relative"
@@ -112,12 +119,13 @@ const NewArrivals = () => {
             />
             <div className="absolute bottom-0 left-0 right-0 bg-black/50 backdrop-blur-md text-white p-4 rounded-b-lg">
               <Link to={`/product/${product._id}`} className="block">
-                <h4 className="font-medium">{product.name}</h4>
+                <h4 className="font-medium">{displayProduct.name}</h4>
                 <p className="mt-1">${product.price}</p>
               </Link>
             </div>
           </div>
-        ))}
+        );
+        })}
       </div>
     </section>
   );

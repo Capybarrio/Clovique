@@ -6,6 +6,8 @@ import ProductGrid from "../components/Products/ProductGrid";
 import { useParams, useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProductsByFilters } from "../redux/slices/productsSlice";
+import { useTranslation } from "../context/useTranslation";
+import { normalizeProductSearchQuery } from "../i18n/productTranslations";
 
 const CollectionPage = () => {
   const { collection } = useParams();
@@ -13,11 +15,19 @@ const CollectionPage = () => {
   const dispatch = useDispatch();
   const { products, loading, error } = useSelector((state) => state.products);
   const queryParams = Object.fromEntries([...searchParams]);
+  const { t } = useTranslation();
 
   const sidebarRef = useRef(null);
 
   useEffect(() => {
-    dispatch(fetchProductsByFilters({ collection, ...queryParams }));
+    const normalizedQueryParams = {
+      ...queryParams,
+      search: queryParams.search
+        ? normalizeProductSearchQuery(queryParams.search)
+        : queryParams.search,
+    };
+
+    dispatch(fetchProductsByFilters({ collection, ...normalizedQueryParams }));
   }, [dispatch, collection, searchParams]);
 
   const toggleButtonRef = useRef(null);
@@ -54,7 +64,7 @@ const CollectionPage = () => {
         className="lg:hidden border p-2 flex justify-center items-center"
       >
         <FaFilter className="mr-2" />
-        Filters
+        {t("common.filters")}
       </button>
       {/* Filter Sidebar */}
       <div
@@ -64,7 +74,7 @@ const CollectionPage = () => {
         <FilterSidebar />
       </div>
       <div className="grow p-4">
-        <h2 className="text-2xl uppercase mb-4">All Collection</h2>
+        <h2 className="text-2xl uppercase mb-4">{t("collection.all")}</h2>
         {/* Sort Options */}
         <SortOptions />
         {/* Product Grid */}

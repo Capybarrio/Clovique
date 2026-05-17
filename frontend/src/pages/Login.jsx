@@ -4,6 +4,7 @@ import login from "../assets/login.webp";
 import { loginUser } from "../redux/slices/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { mergeCart } from "../redux/slices/cartSlice";
+import { useTranslation } from "../context/useTranslation";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -13,8 +14,8 @@ const Login = () => {
   const location = useLocation();
   const { user, guestId, loading } = useSelector((state) => state.auth);
   const { cart } = useSelector((state) => state.cart);
+  const { t } = useTranslation();
 
-  // Get redirect parametr and check if it`s checkout or something
   const redirect = new URLSearchParams(location.search).get("redirect") || "/";
   const isCheckoutRedirect = redirect.includes("checkout");
 
@@ -45,43 +46,47 @@ const Login = () => {
           <div className="flex justify-center mb-6">
             <h2 className="text-xl font-medium">Clovique</h2>
           </div>
-          <h2 className="text-2xl font-bold text-center mb-6">Hey there! 🖐</h2>
-          <p className="text-center mb-6">
-            Enter your username and password to Login
-          </p>
+          <h2 className="text-2xl font-bold text-center mb-6">
+            {t("auth.greeting")}
+          </h2>
+          <p className="text-center mb-6">{t("auth.loginIntro")}</p>
           <div className="mb-4">
-            <label className="block text-sm font-semibold mb-2">Email</label>
+            <label className="block text-sm font-semibold mb-2">
+              {t("common.email")}
+            </label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full p-2 border rounded"
-              placeholder="Enter your email address"
+              placeholder={t("auth.enterEmail")}
             />
           </div>
           <div className="mb-4">
-            <label className="block text-sm font-semibold mb-2">Password</label>
+            <label className="block text-sm font-semibold mb-2">
+              {t("common.password")}
+            </label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full p-2 border rounded"
-              placeholder="Enter your password"
+              placeholder={t("auth.enterPassword")}
             />
           </div>
           <button
             type="submit"
             className="w-full bg-black text-white p-2 rounded-lg font-semibold hover:bg-gray-800 transition"
           >
-            {loading ? "loading..." : "Sign In"}
+            {loading ? t("auth.loggingIn") : t("auth.signIn")}
           </button>
           <p className="mt-6 text-center text-sm">
-            Don't have an account? {""}
+            {t("auth.noAccount")}{" "}
             <Link
               to={`/register?redirect=${encodeURIComponent(redirect)}`}
               className="text-blue-500"
             >
-              Register
+              {t("auth.register")}
             </Link>
           </p>
         </form>
@@ -90,7 +95,7 @@ const Login = () => {
         <div className="h-full flex flex-col justify-center items-center">
           <img
             src={login}
-            alt="Login to Account"
+            alt={t("auth.loginAlt")}
             className="h-187.5 w-full object-cover"
           />
         </div>

@@ -9,17 +9,19 @@ import FeaturedCollection from "../components/Products/FeaturedCollection";
 import FeaturesSection from "../components/Products/FeaturesSection";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProductsByFilters } from "../redux/slices/productsSlice";
+import { useTranslation } from "../context/useTranslation";
 
 const Home = () => {
   const dispatch = useDispatch();
   const { products, loading, error } = useSelector((state) => state.products);
   const [bestSellerProduct, setBestSellerProduct] = useState(null);
+  const { t } = useTranslation();
   useEffect(() => {
     // Fetch product for a specific collection
     dispatch(
       fetchProductsByFilters({
         gender: "Women",
-        category: "Bottom Wear",
+        category: "Top Wear",
         limit: 8,
       }),
     );
@@ -42,16 +44,18 @@ const Home = () => {
       <GenderCollectionSection />
       <NewArrivals />
       {/* Best Seller */}
-      <h2 className="text-3xl text-center font-bold mb-4">Best Seller</h2>
+      <h2 className="text-3xl text-center font-bold mb-4">
+        {t("home.bestSeller")}
+      </h2>
       {bestSellerProduct ? (
         <ProductDetails productId={bestSellerProduct._id} />
       ) : (
-        <p className="text-center">Loading best seller product ...</p>
+        <p className="text-center">{t("home.loadingBestSeller")}</p>
       )}
 
       <div className="container mx-auto">
         <h2 className="text-3xl text-center font-bold mb-4">
-          Top Wears for Women
+          {t("home.topWearsWomen")}
         </h2>
         <ProductGrid products={products} loading={loading} error={error} />
       </div>

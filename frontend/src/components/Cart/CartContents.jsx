@@ -5,9 +5,12 @@ import {
   updateCartItemQuantity,
 } from "../../redux/slices/cartSlice";
 import { useDispatch } from "react-redux";
+import { useTranslation } from "../../context/useTranslation";
+import { translateProductText } from "../../i18n/productTranslations";
 
 const CartContents = ({ cart, userId, guestId }) => {
   const dispatch = useDispatch();
+  const { language, t } = useTranslation();
 
   // Handle adding or substracting to cart
   const handleAddToCart = (productId, delta, quantity, size, color) => {
@@ -31,7 +34,16 @@ const CartContents = ({ cart, userId, guestId }) => {
 
   return (
     <div>
-      {cart.products.map((product, index) => (
+      {cart.products.map((product, index) => {
+        const translatedName =
+          language === "uk" && product.nameUk?.trim()
+            ? product.nameUk
+            : translateProductText(
+                product.translationSourceName || product.name,
+                language,
+                t,
+              );
+        return (
         <div
           key={index}
           className="flex items-start justify-between py-4 border-b"
@@ -39,13 +51,14 @@ const CartContents = ({ cart, userId, guestId }) => {
           <div className="flex items-start">
             <img
               src={product.image}
-              alt={product.name}
+              alt={translatedName}
               className="w-20 h-24 object-cover mr-4 rounded"
             />
             <div>
-              <h3>{product.name}</h3>
+              <h3>{translatedName}</h3>
               <p className="text-sm text-gray-500">
-                size: {product.size} | color: {product.color}
+                {t("common.size")}: {product.size} | {t("common.color")}:{" "}
+                {translateProductText(product.color, language, t)}
               </p>
               <div className="flex items-center mt-2">
                 <button
@@ -83,6 +96,7 @@ const CartContents = ({ cart, userId, guestId }) => {
           <div>
             <p className="font-medium">$ {product.price.toLocaleString()}</p>
             <button
+              aria-label={t("cart.remove")}
               onClick={() =>
                 handleRemoveFromCart(
                   product.productId,
@@ -95,7 +109,8 @@ const CartContents = ({ cart, userId, guestId }) => {
             </button>
           </div>
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 };

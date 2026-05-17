@@ -1,8 +1,10 @@
 import React from "react";
 import { useSearchParams } from "react-router-dom";
+import { useTranslation } from "../../context/useTranslation";
 
 const SortOptions = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { t } = useTranslation();
   const handleSortChange = (e) => {
     const sortBy = e.target.value;
     searchParams.set("sortBy", sortBy);
@@ -16,10 +18,10 @@ const SortOptions = () => {
         value={searchParams.get("sortBy") || ""}
         className="border p-2 rounded-md focus:outline-none"
       >
-        <option value="">Default</option>
-        <option value="priceAsc">Price: Low to High</option>
-        <option value="priceDesc">Price: High to Low</option>
-        <option value="popularity">Popularity</option>
+        <option value="">{t("collection.sortDefault")}</option>
+        <option value="priceAsc">{t("collection.priceLowHigh")}</option>
+        <option value="priceDesc">{t("collection.priceHighLow")}</option>
+        <option value="popularity">{t("collection.popularity")}</option>
       </select>
     </div>
   );

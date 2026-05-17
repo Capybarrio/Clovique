@@ -1,13 +1,15 @@
-import React, { useState } from "react";
+import React from "react";
 import { IoMdClose } from "react-icons/io";
 import CartContents from "../Cart/CartContents";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { useTranslation } from "../../context/useTranslation";
 
 const CartDrawer = ({ drawerOpen, toggleCartDrawer }) => {
   const navigate = useNavigate();
   const { user, guestId } = useSelector((state) => state.auth);
   const { cart } = useSelector((state) => state.cart);
+  const { t } = useTranslation();
   const userId = user ? user._id : null;
 
   const handleCheckout = () => {
@@ -30,11 +32,11 @@ const CartDrawer = ({ drawerOpen, toggleCartDrawer }) => {
       </div>
       {/* Cart content with scroll area */}
       <div className="grow p-4 overflow-y-auto">
-        <h2 className="text-xl font-semibold mb-4">Your Cart</h2>
+        <h2 className="text-xl font-semibold mb-4">{t("cart.title")}</h2>
         {cart && cart?.products?.length > 0 ? (
           <CartContents cart={cart} userId={userId} guestId={guestId} />
         ) : (
-          <p>Your cart is empty.</p>
+          <p>{t("cart.empty")}</p>
         )}
         {/* Component for cart Content */}
       </div>
@@ -46,10 +48,10 @@ const CartDrawer = ({ drawerOpen, toggleCartDrawer }) => {
               onClick={handleCheckout}
               className="w-full bg-black text-white py-3 rounded-lg font-semibold hover:bg-gray-800 transition"
             >
-              Checkout
+              {t("cart.checkout")}
             </button>
             <p className="text-sm tracking-tighter text-gray-500 mt-2 text-center">
-              Shipping, taxes, and discount codes calculated at checkout.
+              {t("cart.note")}
             </p>
           </>
         )}

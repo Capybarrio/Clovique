@@ -5,12 +5,15 @@ import {
   createCheckout,
   finalizeCheckout,
 } from "../../redux/slices/checkoutSlice";
+import { useTranslation } from "../../context/useTranslation";
+import { translateProductText } from "../../i18n/productTranslations";
 
 const Checkout = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { cart } = useSelector((state) => state.cart);
   const { user } = useSelector((state) => state.auth);
+  const { language, t } = useTranslation();
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [checkoutError, setCheckoutError] = useState(null);
@@ -51,7 +54,7 @@ const Checkout = () => {
       const order = await dispatch(finalizeCheckout(checkout._id)).unwrap();
       navigate("/order-confirmation", { state: { order } });
     } catch (error) {
-      setCheckoutError(error?.message || "Failed to create order");
+      setCheckoutError(error?.message || t("checkout.failed"));
       setIsProcessing(false);
     }
   };
@@ -64,11 +67,11 @@ const Checkout = () => {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-7xl mx-auto py-10 px-6 tracking-tight">
       {/* Left Section */}
       <div className="bg-white rounded-lg p-6">
-        <h2 className="text-2xl uppercase mb-6">Checkout</h2>
+        <h2 className="text-2xl uppercase mb-6">{t("checkout.title")}</h2>
         <form onSubmit={handleCreateCheckout}>
-          <h3 className="text-lg mb-4">Contact Details</h3>
+          <h3 className="text-lg mb-4">{t("checkout.contactDetails")}</h3>
           <div className="mb-4">
-            <label className="block text-gray-700">Email</label>
+            <label className="block text-gray-700">{t("common.email")}</label>
             <input
               type="email"
               value={user ? user.email : ""}
@@ -76,10 +79,12 @@ const Checkout = () => {
               disabled
             />
           </div>
-          <h3 className="text-lg mb-4">Delivery</h3>
+          <h3 className="text-lg mb-4">{t("checkout.delivery")}</h3>
           <div className="mb-4 grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-gray-700">First Name</label>
+              <label className="block text-gray-700">
+                {t("checkout.firstName")}
+              </label>
               <input
                 type="text"
                 value={shippingAddress.firstName}
@@ -94,7 +99,9 @@ const Checkout = () => {
               />
             </div>
             <div>
-              <label className="block text-gray-700">Last Name</label>
+              <label className="block text-gray-700">
+                {t("checkout.lastName")}
+              </label>
               <input
                 type="text"
                 value={shippingAddress.lastName}
@@ -110,7 +117,7 @@ const Checkout = () => {
             </div>
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700">Address</label>
+            <label className="block text-gray-700">{t("checkout.address")}</label>
             <input
               type="text"
               value={shippingAddress.address}
@@ -126,7 +133,7 @@ const Checkout = () => {
           </div>
           <div className="mb-4 grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-gray-700">City</label>
+              <label className="block text-gray-700">{t("checkout.city")}</label>
               <input
                 type="text"
                 value={shippingAddress.city}
@@ -141,7 +148,9 @@ const Checkout = () => {
               />
             </div>
             <div>
-              <label className="block text-gray-700">Postal Code</label>
+              <label className="block text-gray-700">
+                {t("checkout.postalCode")}
+              </label>
               <input
                 type="text"
                 value={shippingAddress.postalCode}
@@ -157,7 +166,7 @@ const Checkout = () => {
             </div>
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700">Country</label>
+            <label className="block text-gray-700">{t("checkout.country")}</label>
             <input
               type="text"
               value={shippingAddress.country}
@@ -172,7 +181,7 @@ const Checkout = () => {
             />
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700">Phone</label>
+            <label className="block text-gray-700">{t("checkout.phone")}</label>
             <input
               type="tel"
               value={shippingAddress.phone}
@@ -195,16 +204,26 @@ const Checkout = () => {
               disabled={isProcessing}
               className="w-full bg-black text-white py-3 rounded disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              {isProcessing ? "Processing..." : "Continue to Payment"}
+              {isProcessing ? t("checkout.processing") : t("checkout.continuePayment")}
             </button>
           </div>
         </form>
       </div>
       {/* Right Section */}
       <div className="bg-gray-50 p-6 rounded-lg">
-        <h3 className="text-lg mb-4">Order Summary</h3>
+        <h3 className="text-lg mb-4">{t("checkout.orderSummary")}</h3>
         <div className="border-t py-4 mb-4">
-          {cart.products.map((product, index) => (
+          {cart.products.map((product, index) => {
+            const translatedName =
+              language === "uk" && product.nameUk?.trim()
+                ? product.nameUk
+                : translateProductText(
+                    product.translationSourceName || product.name,
+                    language,
+                    t,
+                  );
+
+            return (
             <div
               key={index}
               className="flex items-start justify-between py-2 border-b"
@@ -212,29 +231,37 @@ const Checkout = () => {
               <div className="flex items-start">
                 <img
                   src={product.image}
-                  alt={product.name}
+                  alt={translatedName}
                   className="w-20 h-24 object-cover mr-4"
                 />
                 <div>
-                  <h3 className="text-md">{product.name}</h3>
-                  <p className="text-gray-500">Size: {product.size}</p>
-                  <p className="text-gray-500">Color: {product.color}</p>
+                  <h3 className="text-md">
+                    {translatedName}
+                  </h3>
+                  <p className="text-gray-500">
+                    {t("common.size")}: {product.size}
+                  </p>
+                  <p className="text-gray-500">
+                    {t("common.color")}:{" "}
+                    {translateProductText(product.color, language, t)}
+                  </p>
                 </div>
               </div>
               <p className="text-xl">${product.price?.toLocaleString()}</p>
             </div>
-          ))}
+            );
+          })}
         </div>
         <div className="flex justify-between items-center text-lg mb-4">
-          <p>Subtotal</p>
+          <p>{t("common.subtotal")}</p>
           <p>${cart.totalPrice?.toLocaleString()}</p>
         </div>
         <div className="flex justify-between items-center text-lg">
-          <p>Shipping</p>
-          <p>Free</p>
+          <p>{t("common.shipping")}</p>
+          <p>{t("common.free")}</p>
         </div>
         <div className="flex justify-between items-center text-lg mt-4 border-t pt-4">
-          <p>Total</p>
+          <p>{t("common.total")}</p>
           <p>${cart.totalPrice?.toLocaleString()}</p>
         </div>
       </div>

@@ -11,6 +11,8 @@ const orderItemSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    nameUk: String,
+    translationSourceName: String,
     image: {
       type: String,
       required: true,

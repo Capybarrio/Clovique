@@ -5,6 +5,8 @@ import {
   fetchAllOrders,
   updateOrderStatus,
 } from "../../redux/slices/adminOrderSlice";
+import { useTranslation } from "../../context/useTranslation";
+import { useAdminAuthGuard } from "../../hooks/useAdminAuthGuard";
 
 const OrderManagement = () => {
   const dispatch = useDispatch();
@@ -12,6 +14,8 @@ const OrderManagement = () => {
 
   const { user } = useSelector((state) => state.auth);
   const { orders, loading, error } = useSelector((state) => state.adminOrders);
+  const { t } = useTranslation();
+  useAdminAuthGuard(error);
 
   useEffect(() => {
     if (!user || user.role !== "admin") {
@@ -25,21 +29,26 @@ const OrderManagement = () => {
     dispatch(updateOrderStatus({ id: orderId, status }));
   };
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error}</p>;
+  if (loading) return <p>{t("common.loading")}</p>;
+  if (error)
+    return (
+      <p>
+        {t("common.error")}: {error}
+      </p>
+    );
 
   return (
     <div className="max-w-7xl mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-6">Order Management</h2>
+      <h2 className="text-2xl font-bold mb-6">{t("admin.orderManagement")}</h2>
       <div className="overflow-x-auto shadow-md sm:rounded-lg">
         <table className="min-w-full text-left text-gray-500">
           <thead className="bg-gray-100 text-xs uppercase text-gray-700">
             <tr>
-              <th className="py-3 px-4">Order ID</th>
-              <th className="py-3 px-4">Customer</th>
-              <th className="py-3 px-4">Total Price</th>
-              <th className="py-3 px-4">Status</th>
-              <th className="py-3 px-4">Actions</th>
+              <th className="py-3 px-4">{t("orders.orderId")}</th>
+              <th className="py-3 px-4">{t("common.customer")}</th>
+              <th className="py-3 px-4">{t("admin.totalPrice")}</th>
+              <th className="py-3 px-4">{t("common.status")}</th>
+              <th className="py-3 px-4">{t("common.actions")}</th>
             </tr>
           </thead>
           <tbody>
@@ -52,7 +61,9 @@ const OrderManagement = () => {
                   <td className="py-4 px-4 font-medium text-gray-900 whitespace-nowrap">
                     #{order._id}
                   </td>
-                  <td className="py-4">{order.user.name}</td>
+                  <td className="py-4">
+                    {order.user?.name || t("admin.deletedUser")}
+                  </td>
                   <td className="py-4">${order.totalPrice.toFixed(2)}</td>
                   <td className="py-4">
                     <select
@@ -62,10 +73,10 @@ const OrderManagement = () => {
                       }
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
                     >
-                      <option value="Processing">Processing</option>
-                      <option value="Shipped">Shipped</option>
-                      <option value="Delivered">Delivered</option>
-                      <option value="Cancelled">Cancelled</option>
+                      <option value="Processing">{t("options.Processing")}</option>
+                      <option value="Shipped">{t("options.Shipped")}</option>
+                      <option value="Delivered">{t("options.Delivered")}</option>
+                      <option value="Cancelled">{t("options.Cancelled")}</option>
                     </select>
                   </td>
                   <td className="p-4">
@@ -73,7 +84,7 @@ const OrderManagement = () => {
                       onClick={() => handleStatusChange(order._id, "Delivered")}
                       className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
                     >
-                      Mark as Delivered
+                      {t("admin.markDelivered")}
                     </button>
                   </td>
                 </tr>
@@ -81,7 +92,7 @@ const OrderManagement = () => {
             ) : (
               <tr>
                 <td colSpan={5} className="p-4 text-center text-gray-500">
-                  No Orders found.
+                  {t("admin.noOrders")}
                 </td>
               </tr>
             )}

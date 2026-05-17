@@ -7,6 +7,8 @@ import {
   fetchUsers,
   updateUser,
 } from "../../redux/slices/adminSlice";
+import { useTranslation } from "../../context/useTranslation";
+import { useAdminAuthGuard } from "../../hooks/useAdminAuthGuard";
 
 const UserManagement = () => {
   const dispatch = useDispatch();
@@ -14,6 +16,8 @@ const UserManagement = () => {
 
   const { user } = useSelector((state) => state.auth);
   const { users, loading, error } = useSelector((state) => state.admin);
+  const { t } = useTranslation();
+  useAdminAuthGuard(error);
 
   useEffect(() => {
     if (user && user.role !== "admin") {
@@ -57,21 +61,25 @@ const UserManagement = () => {
     dispatch(updateUser({ id: userId, role: newRole }));
   };
   const handleDeleteUser = (userId) => {
-    if (window.confirm("Are you sure you want to delete this user?")) {
+    if (window.confirm(t("admin.deleteUserConfirm"))) {
       dispatch(deleteUser(userId));
     }
   };
   return (
     <div className="max-w-7xl mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-6">User Management</h2>
-      {loading && <p>Loading...</p>}
-      {error && <p>Error: {error}</p>}
+      <h2 className="text-2xl font-bold mb-6">{t("admin.userManagement")}</h2>
+      {loading && <p>{t("common.loading")}</p>}
+      {error && (
+        <p>
+          {t("common.error")}: {error}
+        </p>
+      )}
       {/* Add New User Form */}
       <div className="p-6 rounded-lg mb-6">
-        <h3 className="text-lg font-bold mb-4">Add New User</h3>
+        <h3 className="text-lg font-bold mb-4">{t("admin.addNewUser")}</h3>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-gray-700">Name</label>
+            <label className="block text-gray-700">{t("common.name")}</label>
             <input
               type="text"
               name="name"
@@ -82,7 +90,7 @@ const UserManagement = () => {
             />
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700">Email</label>
+            <label className="block text-gray-700">{t("common.email")}</label>
             <input
               type="email"
               name="email"
@@ -93,7 +101,9 @@ const UserManagement = () => {
             />
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700">Password</label>
+            <label className="block text-gray-700">
+              {t("common.password")}
+            </label>
             <input
               type="password"
               name="password"
@@ -104,22 +114,22 @@ const UserManagement = () => {
             />
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700">Role</label>
+            <label className="block text-gray-700">{t("common.role")}</label>
             <select
               name="role"
               value={formData.role}
               onChange={handleChange}
               className="w-full p-2 border rounded"
             >
-              <option value="customer">Customer</option>
-              <option value="admin">Admin</option>
+              <option value="customer">{t("options.customer")}</option>
+              <option value="admin">{t("options.admin")}</option>
             </select>
           </div>
           <button
             type="submit"
             className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600"
           >
-            Add User
+            {t("admin.addUser")}
           </button>
         </form>
       </div>
@@ -128,10 +138,10 @@ const UserManagement = () => {
         <table className="min-w-full text-left text-gray-500">
           <thead className="bg-gray-100 text-xs uppercase text-gray-700">
             <tr>
-              <td className="py-3 px-4">Name</td>
-              <td className="py-3 px-4">Email</td>
-              <td className="py-3 px-4">Role</td>
-              <td className="py-3 px-4">Actions</td>
+              <td className="py-3 px-4">{t("common.name")}</td>
+              <td className="py-3 px-4">{t("common.email")}</td>
+              <td className="py-3 px-4">{t("common.role")}</td>
+              <td className="py-3 px-4">{t("common.actions")}</td>
             </tr>
           </thead>
           <tbody>
@@ -147,8 +157,8 @@ const UserManagement = () => {
                     onChange={(e) => handleRoleChange(user._id, e.target.value)}
                     className="p-2 border rounded"
                   >
-                    <option value="customer">Customer</option>
-                    <option value="admin">Admin</option>
+                    <option value="customer">{t("options.customer")}</option>
+                    <option value="admin">{t("options.admin")}</option>
                   </select>
                 </td>
                 <td className="p-4">
@@ -156,7 +166,7 @@ const UserManagement = () => {
                     onClick={() => handleDeleteUser(user._id)}
                     className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
                   >
-                    Delete
+                    {t("common.delete")}
                   </button>
                 </td>
               </tr>

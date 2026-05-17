@@ -10,10 +10,12 @@ import { useDispatch } from "react-redux";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { logout } from "../../redux/slices/authSlice";
 import { clearCart } from "../../redux/slices/cartSlice";
+import { useTranslation } from "../../context/useTranslation";
 
 const AdminSidebar = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { t } = useTranslation();
   const handleLogout = () => {
     dispatch(logout());
     dispatch(clearCart());
@@ -26,7 +28,9 @@ const AdminSidebar = () => {
           Clovique
         </Link>
       </div>
-      <h2 className="text-xl font-medium mb-6 text-center">Admin Dashboard</h2>
+      <h2 className="text-xl font-medium mb-6 text-center">
+        {t("admin.dashboard")}
+      </h2>
       <nav className="flex flex-col space-y-2">
         <NavLink
           to="/admin/users"
@@ -37,7 +41,7 @@ const AdminSidebar = () => {
           }
         >
           <FaUser />
-          <span>Users</span>
+          <span>{t("admin.users")}</span>
         </NavLink>
         <NavLink
           to="/admin/products"
@@ -48,7 +52,7 @@ const AdminSidebar = () => {
           }
         >
           <FaBoxOpen />
-          <span>Products</span>
+          <span>{t("common.products")}</span>
         </NavLink>
         <NavLink
           to="/admin/orders"
@@ -59,7 +63,7 @@ const AdminSidebar = () => {
           }
         >
           <FaClipboardList />
-          <span>Orders</span>
+          <span>{t("common.orders")}</span>
         </NavLink>
         <NavLink
           to="/"
@@ -70,7 +74,7 @@ const AdminSidebar = () => {
           }
         >
           <FaStore />
-          <span>Shop</span>
+          <span>{t("common.shop")}</span>
         </NavLink>
       </nav>
       <div className="mt-6">
@@ -79,7 +83,7 @@ const AdminSidebar = () => {
           className="w-full bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded flex items-center justify-center space-x-2"
         >
           <FaSignOutAlt />
-          <span>Logout</span>
+          <span>{t("common.logout")}</span>
         </button>
       </div>
     </div>

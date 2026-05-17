@@ -14,6 +14,7 @@ const subscribeRoute = require("./routes/subscribeRoute");
 const adminRoutes = require("./routes/adminRoutes");
 const productAdminRoutes = require("./routes/productAdminRoutes");
 const adminOrderRoutes = require("./routes/adminOrderRoutes");
+const syncSeedProducts = require("./utils/syncSeedProducts");
 
 dotenv.config({ path: path.join(__dirname, ".env") });
 dns.setServers(["8.8.8.8", "1.1.1.1"]);
@@ -21,6 +22,10 @@ dns.setServers(["8.8.8.8", "1.1.1.1"]);
 const app = express();
 app.use(express.json());
 app.use(cors());
+app.use(
+  "/products",
+  express.static(path.join(__dirname, "..", "frontend", "public", "products")),
+);
 
 const PORT = process.env.PORT || 3000;
 
@@ -45,11 +50,13 @@ app.use("/api/admin/orders", adminOrderRoutes);
 const startServer = async () => {
   try {
     await connectDB();
+    const syncedProductsCount = await syncSeedProducts();
+    console.log(`Catalog synced from products.js: ${syncedProductsCount} products`);
     app.listen(PORT, () => {
       console.log(`Server is running on http://localhost:${PORT}`);
     });
   } catch (err) {
-    console.error("Server startup aborted because MongoDB is unavailable.");
+    console.error("Server startup aborted.", err);
     process.exit(1);
   }
 };

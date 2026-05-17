@@ -85,6 +85,8 @@ router.post("/:id/finalize", protect, async (req, res) => {
       const orderItems = checkout.checkoutItems.map((item) => ({
         productId: item.productId,
         name: item.name,
+        nameUk: item.nameUk,
+        translationSourceName: item.translationSourceName,
         image: item.image,
         price: item.price,
         size: item.size,
@@ -102,7 +104,7 @@ router.post("/:id/finalize", protect, async (req, res) => {
       // Create final order based on the checkout details
       const finalOrder = await Order.create({
         user: checkout.user,
-        orderItems: checkout.checkoutItems,
+        orderItems,
         shippingAddress: checkout.shippingAddress,
         paymentMethod: checkout.paymentMethod,
         totalPrice: checkout.totalPrice,

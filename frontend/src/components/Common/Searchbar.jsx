@@ -6,21 +6,32 @@ import {
   fetchProductsByFilters,
   setFilters,
 } from "../../redux/slices/productsSlice";
+import { useTranslation } from "../../context/useTranslation";
+import { normalizeProductSearchQuery } from "../../i18n/productTranslations";
 
 const SearchBar = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const handleSearchToggle = () => {
     setIsOpen(!isOpen);
   };
 
   const handleSearch = (e) => {
     e.preventDefault();
-    dispatch(setFilters({ search: searchTerm }));
-    dispatch(fetchProductsByFilters({ search: searchTerm }));
-    navigate(`/collections/all?search=${searchTerm}`);
+    const trimmedSearchTerm = searchTerm.trim();
+    const sourceSearchTerm = normalizeProductSearchQuery(trimmedSearchTerm);
+    const params = new URLSearchParams();
+
+    if (sourceSearchTerm) {
+      params.set("search", sourceSearchTerm);
+    }
+
+    dispatch(setFilters({ search: sourceSearchTerm }));
+    dispatch(fetchProductsByFilters({ search: sourceSearchTerm }));
+    navigate(`/collections/all${params.toString() ? `?${params}` : ""}`);
     setIsOpen(false);
   };
 
@@ -36,7 +47,7 @@ const SearchBar = () => {
           <div className="relative w-1/2">
             <input
               type="text"
-              placeholder="Search"
+              placeholder={t("search.placeholder")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="bg-gray-100 px-4 py-2 pl-2 pr-12 rounded-lg focus:outline-none w-full placeholder:text-gray-700"
@@ -44,6 +55,7 @@ const SearchBar = () => {
             {/* search icon */}
             <button
               type="submit"
+              aria-label={t("search.submit")}
               className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-800"
             >
               <HiMagnifyingGlass className="h-6 w-6" />
@@ -52,13 +64,14 @@ const SearchBar = () => {
           <button
             type="button"
             onClick={handleSearchToggle}
+            aria-label={t("search.close")}
             className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-800"
           >
             <HiMiniXMark className="h-6 w-6" />
           </button>
         </form>
       ) : (
-        <button onClick={handleSearchToggle}>
+        <button onClick={handleSearchToggle} aria-label={t("search.open")}>
           <HiMagnifyingGlass className="h-6 w-6" />
         </button>
       )}

@@ -4,11 +4,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { logout } from "../redux/slices/authSlice";
 import { clearCart } from "../redux/slices/cartSlice";
+import { useTranslation } from "../context/useTranslation";
 
 const Profile = () => {
   const { user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (!user) {
@@ -36,7 +38,7 @@ const Profile = () => {
               onClick={handleLogout}
               className="w-full bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600"
             >
-              Logout
+              {t("common.logout")}
             </button>
           </div>
           {/* Right Section */}

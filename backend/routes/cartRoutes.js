@@ -2,7 +2,7 @@ const express = require("express");
 const Cart = require("../models/Cart");
 const Product = require("../models/Product");
 const { protect } = require("../middleware/authMiddleware");
-const products = require("../data/products");
+const { withSeedProductData } = require("../utils/productImages");
 
 const router = express.Router();
 
@@ -16,14 +16,60 @@ const getCart = async (userId, guestId) => {
   return null;
 };
 
+const getCartProductSnapshot = async (productId) => {
+  const product = await Product.findById(productId);
+  if (!product) return null;
+
+  const syncedProduct = withSeedProductData(product);
+  const translationSourceName =
+    syncedProduct.translationSource?.name === syncedProduct.name
+      ? syncedProduct.translationSource.name
+      : undefined;
+
+  return {
+    name: syncedProduct.name,
+    nameUk: syncedProduct.nameUk,
+    translationSourceName,
+    image: syncedProduct.images?.[0]?.url || "",
+    price: syncedProduct.price,
+  };
+};
+
+const syncCartProductSnapshots = async (cart) => {
+  if (!cart) return cart;
+
+  await Promise.all(
+    cart.products.map(async (item) => {
+      const productSnapshot = await getCartProductSnapshot(item.productId);
+      if (!productSnapshot) return;
+
+      item.name = productSnapshot.name;
+      item.nameUk = productSnapshot.nameUk;
+      item.translationSourceName = productSnapshot.translationSourceName;
+      item.image = productSnapshot.image;
+      item.price = productSnapshot.price;
+    }),
+  );
+
+  cart.totalPrice = cart.products.reduce(
+    (acc, item) => acc + item.price * item.quantity,
+    0,
+  );
+  await cart.save();
+
+  return cart;
+};
+
 // @route POST /api/cart
 // @desc Add a product to the cart for a guest or logged in user
 // @access Public
 router.post("/", async (req, res) => {
   const { productId, quantity, size, color, guestId, userId } = req.body;
   try {
-    const product = await Product.findById(productId);
-    if (!product) return res.status(404).json({ message: "Product not found" });
+    const productSnapshot = await getCartProductSnapshot(productId);
+    if (!productSnapshot) {
+      return res.status(404).json({ message: "Product not found" });
+    }
 
     // Determine if the user is logged in or guest
     let cart = await getCart(userId, guestId);
@@ -38,12 +84,20 @@ router.post("/", async (req, res) => {
       );
       if (productIndex > -1) {
         cart.products[productIndex].quantity += quantity;
+        cart.products[productIndex].name = productSnapshot.name;
+        cart.products[productIndex].nameUk = productSnapshot.nameUk;
+        cart.products[productIndex].translationSourceName =
+          productSnapshot.translationSourceName;
+        cart.products[productIndex].image = productSnapshot.image;
+        cart.products[productIndex].price = productSnapshot.price;
       } else {
         cart.products.push({
           productId,
-          name: product.name,
-          image: product.images[0].url,
-          price: product.price,
+          name: productSnapshot.name,
+          nameUk: productSnapshot.nameUk,
+          translationSourceName: productSnapshot.translationSourceName,
+          image: productSnapshot.image,
+          price: productSnapshot.price,
           size,
           color,
           quantity,
@@ -65,15 +119,17 @@ router.post("/", async (req, res) => {
         products: [
           {
             productId,
-            name: product.name,
-            image: product.images[0].url,
-            price: product.price,
+            name: productSnapshot.name,
+            nameUk: productSnapshot.nameUk,
+            translationSourceName: productSnapshot.translationSourceName,
+            image: productSnapshot.image,
+            price: productSnapshot.price,
             size,
             color,
             quantity,
           },
         ],
-        totalPrice: product.price * quantity,
+        totalPrice: productSnapshot.price * quantity,
       });
       return res.status(201).json(newCart);
     }
@@ -112,7 +168,8 @@ router.put("/", async (req, res) => {
         0,
       );
       await cart.save();
-      return res.status(200).json(cart);
+      const syncedCart = await syncCartProductSnapshots(cart);
+      return res.status(200).json(syncedCart);
     } else {
       return res.status(404).json({ message: "Product not found in cart" });
     }
@@ -145,7 +202,8 @@ router.delete("/", async (req, res) => {
         0,
       );
       await cart.save();
-      return res.status(200).json(cart);
+      const syncedCart = await syncCartProductSnapshots(cart);
+      return res.status(200).json(syncedCart);
     } else {
       return res.status(404).json({ message: "Product not found in cart" });
     }
@@ -163,7 +221,8 @@ router.get("/", async (req, res) => {
   try {
     const cart = await getCart(userId, guestId);
     if (cart) {
-      res.json(cart);
+      const syncedCart = await syncCartProductSnapshots(cart);
+      res.json(syncedCart);
     } else {
       res.status(404).json({ message: "Cart not found" });
     }
@@ -211,6 +270,7 @@ router.post("/merge", protect, async (req, res) => {
           0,
         );
         await userCart.save();
+        await syncCartProductSnapshots(userCart);
 
         // Remove the guest cart after merging
         try {
@@ -224,12 +284,14 @@ router.post("/merge", protect, async (req, res) => {
         guestCart.user = req.user._id;
         guestCart.guestId = undefined;
         await guestCart.save();
-        res.status(200).json(guestCart);
+        const syncedCart = await syncCartProductSnapshots(guestCart);
+        res.status(200).json(syncedCart);
       }
     } else {
       if (userCart) {
         // Guest cart has already been merged, return user cart
-        return res.status(200).json(userCart);
+        const syncedCart = await syncCartProductSnapshots(userCart);
+        return res.status(200).json(syncedCart);
       }
       res.status(404).json({ message: "Guest cart not found" });
     }

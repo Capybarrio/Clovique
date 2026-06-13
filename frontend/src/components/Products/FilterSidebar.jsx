@@ -1,5 +1,6 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "../../context/useTranslation";
 
@@ -19,6 +20,7 @@ const FilterSidebar = () => {
   });
 
   const [priceRange, setPriceRange] = useState([0, 100]);
+  const [brands, setBrands] = useState([]);
   const categories = ["Top Wear", "Bottom Wear"];
   const colors = [
     { value: "Black", swatch: "#111827" },
@@ -57,36 +59,6 @@ const FilterSidebar = () => {
     "Fleece",
   ];
 
-  const brands = [
-    "ActiveWear",
-    "Adidas",
-    "Urban Threads",
-    "Modern Fit",
-    "Street Style",
-    "Beach Breeze",
-    "CasualLook",
-    "ChicWrap",
-    "ChillZone",
-    "ClassicStyle",
-    "ComfortFit",
-    "DenimCo",
-    "ElegantStyle",
-    "Everyday Comfort",
-    "ExecutiveStyle",
-    "FeminineWear",
-    "Heritage Wear",
-    "Jordan",
-    "LoungeWear",
-    "Polo Classics",
-    "SportX",
-    "Street Vibes",
-    "StreetStyle",
-    "StreetWear",
-    "Urban Chic",
-    "UrbanStyle",
-    "Winter Basics",
-  ];
-
   const genders = ["Men", "Women"];
   const getOptionLabel = (value) => {
     const translationKey = `options.${value}`;
@@ -108,6 +80,22 @@ const FilterSidebar = () => {
     });
     setPriceRange([0, params.maxPrice || 100]);
   }, [searchParams]);
+
+  useEffect(() => {
+    const fetchBrands = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/api/products/brands`,
+        );
+        setBrands(Array.isArray(response.data) ? response.data : []);
+      } catch (error) {
+        console.error("Failed to load product brands", error);
+        setBrands([]);
+      }
+    };
+
+    fetchBrands();
+  }, []);
 
   const handleFilterChange = (e) => {
     const { name, value, checked, type } = e.target;

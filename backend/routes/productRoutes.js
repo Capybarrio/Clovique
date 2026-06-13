@@ -295,6 +295,36 @@ router.get("/new-arrivals", async (req, res) => {
     res.status(500).send("Server Error");
   }
 });
+
+// @route GET /api/products/brands
+// @desc Retrieve brands that have products
+// @access Public
+router.get("/brands", async (req, res) => {
+  try {
+    const brands = await Product.aggregate([
+      {
+        $match: {
+          brand: { $type: "string", $ne: "" },
+        },
+      },
+      {
+        $group: {
+          _id: "$brand",
+        },
+      },
+      {
+        $sort: {
+          _id: 1,
+        },
+      },
+    ]);
+
+    res.json(brands.map((brand) => brand._id));
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server Error");
+  }
+});
 // @route GET /api/products/similar/:id
 // @desc Retrieve similar products based on the current product`s gender amd category
 // @access Public
